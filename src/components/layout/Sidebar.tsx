@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BarChart4, Users, FileText, ClipboardCheck, MonitorPlay, FileBarChart, Settings, School, BookOpen, CalendarCheck, FileSpreadsheet, CheckCircle, UserCheck } from 'lucide-react';
+import { BarChart4, Users, FileText, ClipboardCheck, MonitorPlay, FileBarChart, Settings, BookOpen, CalendarCheck, FileSpreadsheet, CheckCircle, UserCheck } from 'lucide-react';
 import { Sidebar as SidebarComponent, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
+
 const SkillPulseLogo = () => <div className="flex items-center justify-center py-3">
     <div className="flex items-center space-x-2">
       <div className="bg-white rounded-full p-1">
@@ -10,19 +11,16 @@ const SkillPulseLogo = () => <div className="flex items-center justify-center py
       <div className="text-white font-bold text-lg">Cee Vision</div>
     </div>
   </div>;
+
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Define menu items
+  // Define menu items - removed the Exams entry
   const menuItems = [{
     icon: BarChart4,
     label: 'Dashboard',
     path: '/dashboard'
-  }, {
-    icon: School,
-    label: 'Exams',
-    path: '/exams'
   }, {
     icon: CalendarCheck,
     label: 'Schedule Exams',
@@ -60,6 +58,7 @@ const Sidebar = () => {
     label: 'Settings',
     path: '/settings'
   }];
+
   const isActive = (path: string) => {
     if (path === '/') {
       return location.pathname === path;
@@ -99,4 +98,5 @@ const Sidebar = () => {
       </SidebarFooter>
     </SidebarComponent>;
 };
+
 export default Sidebar;
