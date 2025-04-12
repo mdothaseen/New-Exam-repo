@@ -56,7 +56,6 @@ const ContactDetailsStep: React.FC<ContactDetailsStepProps> = ({ formData, handl
               <SelectItem value="maharashtra">Maharashtra</SelectItem>
               <SelectItem value="karnataka">Karnataka</SelectItem>
               <SelectItem value="tamil-nadu">Tamil Nadu</SelectItem>
-              {/* Add more states as needed */}
             </SelectContent>
           </Select>
         </div>
@@ -68,7 +67,6 @@ const ContactDetailsStep: React.FC<ContactDetailsStepProps> = ({ formData, handl
               <SelectValue placeholder="Select District" />
             </SelectTrigger>
             <SelectContent>
-              {/* Districts would be populated based on selected state */}
               <SelectItem value="new-delhi">New Delhi</SelectItem>
               <SelectItem value="mumbai">Mumbai</SelectItem>
               <SelectItem value="bengaluru">Bengaluru</SelectItem>

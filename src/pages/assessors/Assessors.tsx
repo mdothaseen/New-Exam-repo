@@ -12,8 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 
 const Assessors = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterSector, setFilterSector] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterSector, setFilterSector] = useState('all');  // Set default value to 'all'
+  const [filterStatus, setFilterStatus] = useState('all');  // Set default value to 'all'
   const [dialogOpen, setDialogOpen] = useState(false);
   const { user } = useAuth();
 
@@ -28,8 +28,8 @@ const Assessors = () => {
       assessor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       assessor.sidhId.toLowerCase().includes(searchTerm.toLowerCase());
       
-    const matchesSector = filterSector === '' || assessor.sector === filterSector;
-    const matchesStatus = filterStatus === '' || assessor.status === filterStatus;
+    const matchesSector = filterSector === 'all' || assessor.sector === filterSector;
+    const matchesStatus = filterStatus === 'all' || assessor.status === filterStatus;
     
     return matchesSearch && matchesSector && matchesStatus;
   });
