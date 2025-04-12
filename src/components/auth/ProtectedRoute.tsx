@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -11,6 +11,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
+  // Only redirect if not authenticated
   if (!isAuthenticated) {
     // Redirect to login page if not authenticated
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;

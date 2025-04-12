@@ -34,7 +34,7 @@ const SkillPulseLogo = () => (
   <div className="flex items-center justify-center py-3">
     <div className="flex items-center space-x-2">
       <div className="bg-white rounded-full p-1">
-        <CheckCircle className="h-6 w-6 text-exam-purple" />
+        <CheckCircle className="h-6 w-6 text-[#6b21a8]" />
       </div>
       <div className="text-white font-bold text-lg">ExamPro</div>
     </div>
@@ -67,15 +67,16 @@ const Sidebar = () => {
     return location.pathname.startsWith(path);
   };
 
+  // Improved color scheme with deeper purple and better contrast
   return (
-    <SidebarComponent className="bg-[#6b21a8] border-r-0">
-      <SidebarHeader>
+    <SidebarComponent className="bg-gradient-to-b from-[#4a148c] to-[#6a1b9a] border-r-0">
+      <SidebarHeader className="border-b border-white/10">
         <SkillPulseLogo />
       </SidebarHeader>
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white/50 px-4 py-2">
+          <SidebarGroupLabel className="text-white/60 px-4 py-2 text-xs uppercase tracking-wider">
             Admin Panel
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -84,10 +85,14 @@ const Sidebar = () => {
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton 
                     onClick={() => navigate(item.path)}
-                    className={`${isActive(item.path) ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'} transition-colors`}
+                    className={`${
+                      isActive(item.path) 
+                        ? 'bg-white/20 text-white' 
+                        : 'text-white/80 hover:bg-white/10'
+                    } transition-colors rounded-md mb-1`}
                   >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-5 w-5 mr-3" />
+                    <span className="font-medium">{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -96,7 +101,7 @@ const Sidebar = () => {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter>
+      <SidebarFooter className="border-t border-white/10">
         <div className="px-3 py-2 text-xs text-white/70 text-center">
           Skill India Digital Initiative<br />
           &copy; {new Date().getFullYear()}
