@@ -9,7 +9,7 @@ import UserManagement from "./pages/users/UserManagement";
 import ContentManagement from "./pages/ContentManagement";
 import AssessmentManagement from "./pages/AssessmentManagement";
 import Monitoring from "./pages/Monitoring";
-import Reports from "./pages/Reports";
+import ReportsPage from "./pages/reports/ReportsPage";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -29,8 +29,8 @@ const App = () => (
           <Route path="/content" element={<ContentManagement />} />
           <Route path="/assessments" element={<AssessmentManagement />} />
           <Route path="/monitoring" element={<Monitoring />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/reports/:tab" element={<Reports />} />
+          <Route path="/reports" element={<ReportsPage />} />
+          <Route path="/reports/:tab" element={<ReportsPage />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
