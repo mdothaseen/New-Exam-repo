@@ -8,7 +8,11 @@ import {
   ClipboardCheck, 
   MonitorPlay, 
   FileBarChart, 
-  Settings
+  Settings,
+  School,
+  BookOpen,
+  CalendarCheck,
+  FileSpreadsheet
 } from 'lucide-react';
 
 import {
@@ -46,10 +50,35 @@ const Sidebar = () => {
         { label: 'SSC', path: '/users/ssc' },
       ]
     },
-    { icon: FileText, label: 'Content Management', path: '/content' },
-    { icon: ClipboardCheck, label: 'Assessment Management', path: '/assessments' },
-    { icon: MonitorPlay, label: 'Monitoring', path: '/monitoring' },
-    { icon: FileBarChart, label: 'Reports', path: '/reports' },
+    { icon: FileText, label: 'Content Management', path: '/content',
+      subItems: [
+        { label: 'SSC', path: '/content/ssc' },
+        { label: 'Job Roles', path: '/content/roles' },
+        { label: 'Question Papers', path: '/content/questions' },
+      ]
+    },
+    { icon: ClipboardCheck, label: 'Assessment Management', path: '/assessments',
+      subItems: [
+        { label: 'Scheme', path: '/assessments/scheme' },
+        { label: 'Training Partners', path: '/assessments/partners' },
+        { label: 'Assessments', path: '/assessments/list' },
+      ]
+    },
+    { icon: MonitorPlay, label: 'Monitoring', path: '/monitoring',
+      subItems: [
+        { label: 'Batches', path: '/monitoring/batches' },
+        { label: 'Ongoing Exams', path: '/monitoring/ongoing' },
+      ]
+    },
+    { icon: FileBarChart, label: 'Reports', path: '/reports',
+      subItems: [
+        { label: 'Dashboard', path: '/reports/dashboard' },
+        { label: 'Results Sheet', path: '/reports/results' },
+        { label: 'Log Sheet', path: '/reports/log' },
+        { label: 'Theory', path: '/reports/theory' },
+        { label: 'Practical', path: '/reports/practical' },
+      ]
+    },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 

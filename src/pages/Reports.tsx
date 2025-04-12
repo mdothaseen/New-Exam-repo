@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -76,7 +76,19 @@ const recentResults = [
 ];
 
 const Reports = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { tab } = useParams();
+  
+  const [activeTab, setActiveTab] = useState(() => {
+    const path = tab || 'dashboard';
+    return path === 'reports' ? 'dashboard' : path;
+  });
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    navigate(`/reports/${value}`);
+  };
 
   return (
     <AdminLayout>
@@ -104,7 +116,7 @@ const Reports = () => {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="results">Results Sheet</TabsTrigger>

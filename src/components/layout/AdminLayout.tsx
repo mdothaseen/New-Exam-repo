@@ -22,6 +22,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           <main className="flex-1 p-4 md:p-6 overflow-auto bg-gray-50">
             {children}
           </main>
+          <footer className="py-4 px-6 border-t text-center text-sm text-muted-foreground">
+            Skill Pulse Exam Hub &copy; {new Date().getFullYear()} Skill India Digital Initiative
+          </footer>
           <Toaster />
         </div>
       </div>

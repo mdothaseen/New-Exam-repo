@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
 import UserManagement from "./pages/users/UserManagement";
 import ContentManagement from "./pages/ContentManagement";
@@ -23,12 +23,14 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Navigate to="/" replace />} />
           <Route path="/users" element={<UserManagement />} />
           <Route path="/users/:tab" element={<UserManagement />} />
           <Route path="/content" element={<ContentManagement />} />
           <Route path="/assessments" element={<AssessmentManagement />} />
           <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/reports/:tab" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
