@@ -3,6 +3,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
+import { sectorList } from '@/utils/sectorData';
 
 interface AssessorFiltersProps {
   searchTerm: string;
@@ -37,12 +38,13 @@ const AssessorFilters: React.FC<AssessorFiltersProps> = ({
         <SelectTrigger>
           <SelectValue placeholder="Filter by Sector" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-80">
           <SelectItem value="all">All Sectors</SelectItem>
-          <SelectItem value="it-ites">IT-ITES</SelectItem>
-          <SelectItem value="healthcare">Healthcare</SelectItem>
-          <SelectItem value="electronics">Electronics</SelectItem>
-          <SelectItem value="retail">Retail</SelectItem>
+          {sectorList.map((sector) => (
+            <SelectItem key={sector} value={sector.toLowerCase().replace(/\s+/g, '-')}>
+              {sector}
+            </SelectItem>
+          ))}
         </SelectContent>
       </Select>
       

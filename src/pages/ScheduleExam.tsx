@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { sectorList } from '@/utils/sectorData';
 
 const formSchema = z.object({
   schemeName: z.string().min(1, { message: 'Scheme name is required' }),
@@ -117,9 +118,21 @@ const ScheduleExam = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Sector Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter sector name" {...field} />
-                        </FormControl>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a sector" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-80">
+                            {sectorList.map((sector) => (
+                              <SelectItem key={sector} value={sector}>{sector}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
