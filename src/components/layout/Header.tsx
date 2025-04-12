@@ -13,15 +13,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 const Header = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    // No navigation here - the logout function will handle redirection
+  };
 
   return (
     <header className="bg-white border-b border-gray-200 py-3 px-4 flex items-center justify-between">
       <div className="flex items-center">
         <SidebarTrigger className="mr-2" />
-        <div className="text-xl font-bold hidden md:inline-flex text-skill-blue">Skill Pulse Exam Hub</div>
+        <div className="text-xl font-bold hidden md:inline-flex text-indigo-600">Skill Pulse Exam Hub</div>
       </div>
 
       <div className="flex items-center space-x-2">
@@ -50,7 +57,7 @@ const Header = () => {
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>

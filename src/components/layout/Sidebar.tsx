@@ -12,7 +12,8 @@ import {
   School,
   BookOpen,
   CalendarCheck,
-  FileSpreadsheet
+  FileSpreadsheet,
+  CheckCircle
 } from 'lucide-react';
 
 import {
@@ -28,10 +29,14 @@ import {
   SidebarFooter,
 } from "@/components/ui/sidebar";
 
-// Create Skill India logo component
-const SkillIndiaLogo = () => (
+const SkillPulseLogo = () => (
   <div className="flex items-center justify-center py-3">
-    <div className="text-white font-bold text-lg">Skill Pulse Exam Hub</div>
+    <div className="flex items-center space-x-2">
+      <div className="bg-white rounded-full p-1">
+        <CheckCircle className="h-6 w-6 text-exam-purple" />
+      </div>
+      <div className="text-white font-bold text-lg">ExamPro</div>
+    </div>
   </div>
 );
 
@@ -41,44 +46,15 @@ const Sidebar = () => {
 
   // Define menu items
   const menuItems = [
-    { icon: BarChart4, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'User Management', path: '/users', 
-      subItems: [
-        { label: 'Assessors', path: '/users/assessors' },
-        { label: 'Candidates', path: '/users/candidates' },
-        { label: 'Team/NCVET', path: '/users/team' },
-        { label: 'SSC', path: '/users/ssc' },
-      ]
-    },
-    { icon: FileText, label: 'Content Management', path: '/content',
-      subItems: [
-        { label: 'SSC', path: '/content/ssc' },
-        { label: 'Job Roles', path: '/content/roles' },
-        { label: 'Question Papers', path: '/content/questions' },
-      ]
-    },
-    { icon: ClipboardCheck, label: 'Assessment Management', path: '/assessments',
-      subItems: [
-        { label: 'Scheme', path: '/assessments/scheme' },
-        { label: 'Training Partners', path: '/assessments/partners' },
-        { label: 'Assessments', path: '/assessments/list' },
-      ]
-    },
-    { icon: MonitorPlay, label: 'Monitoring', path: '/monitoring',
-      subItems: [
-        { label: 'Batches', path: '/monitoring/batches' },
-        { label: 'Ongoing Exams', path: '/monitoring/ongoing' },
-      ]
-    },
-    { icon: FileBarChart, label: 'Reports', path: '/reports',
-      subItems: [
-        { label: 'Dashboard', path: '/reports/dashboard' },
-        { label: 'Results Sheet', path: '/reports/results' },
-        { label: 'Log Sheet', path: '/reports/log' },
-        { label: 'Theory', path: '/reports/theory' },
-        { label: 'Practical', path: '/reports/practical' },
-      ]
-    },
+    { icon: BarChart4, label: 'Dashboard', path: '/dashboard' },
+    { icon: School, label: 'Exams', path: '/exams' },
+    { icon: CalendarCheck, label: 'Schedule Exams', path: '/schedule' },
+    { icon: Users, label: 'Manage Candidates', path: '/users/candidates' },
+    { icon: BookOpen, label: 'Question Bank', path: '/content' },
+    { icon: MonitorPlay, label: 'AI Proctoring', path: '/monitoring' },
+    { icon: CheckCircle, label: 'Results', path: '/results' },
+    { icon: FileBarChart, label: 'Reports', path: '/reports' },
+    { icon: FileSpreadsheet, label: 'Exam Templates', path: '/templates' },
     { icon: Settings, label: 'Settings', path: '/settings' },
   ];
 
@@ -90,20 +66,23 @@ const Sidebar = () => {
   };
 
   return (
-    <SidebarComponent>
+    <SidebarComponent className="bg-[#6b21a8] border-r-0">
       <SidebarHeader>
-        <SkillIndiaLogo />
+        <SkillPulseLogo />
       </SidebarHeader>
       
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel className="text-white/50 px-4 py-2">
+            Admin Panel
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton 
                     onClick={() => navigate(item.path)}
-                    className={`${isActive(item.path) ? 'bg-sidebar-accent text-white' : 'hover:bg-sidebar-accent/50'} transition-colors`}
+                    className={`${isActive(item.path) ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'} transition-colors`}
                   >
                     <item.icon className="h-5 w-5" />
                     <span>{item.label}</span>

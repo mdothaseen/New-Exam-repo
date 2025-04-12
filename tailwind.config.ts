@@ -68,7 +68,16 @@ export default {
 					orange: '#f26522',
 					light: '#f8f9fa',
 					dark: '#212529'
-				}
+				},
+				exam: {
+          purple: '#7e22ce',
+          light: '#f5f3ff',
+          lilac: '#d8b4fe',
+          blue: '#4f46e5',
+          lightblue: '#e0e7ff',
+          green: '#22c55e',
+          yellow: '#facc15'
+        }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

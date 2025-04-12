@@ -1,15 +1,23 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Clock, AlertCircle, ChevronLeft, ChevronRight, CheckCircle2 } from "lucide-react";
+import { 
+  AlertDialog, AlertDialogAction, AlertDialogCancel, 
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter, 
+  AlertDialogHeader, AlertDialogTitle 
+} from "@/components/ui/alert-dialog";
+import { 
+  Clock, AlertCircle, ChevronLeft, ChevronRight, CheckCircle2, 
+  Camera, AlertTriangle, Info, ArrowRight, CheckCheck
+} from "lucide-react";
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/components/ui/use-toast';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // Mock exam data
 const mockExam = {
@@ -17,6 +25,15 @@ const mockExam = {
   title: 'Basic IT Skills Assessment',
   duration: 30, // minutes
   totalQuestions: 20,
+  instructions: [
+    "Read each question carefully before answering.",
+    "You will be monitored through your webcam during the exam.",
+    "Switching tabs or windows may be flagged as suspicious activity.",
+    "Ensure you have a stable internet connection throughout the exam.",
+    "You have 30 minutes to complete all questions.",
+    "You can review and change your answers before final submission.",
+    "Once time expires, your exam will be automatically submitted."
+  ],
   questions: Array(20).fill(null).map((_, index) => ({
     id: `q-${index + 1}`,
     text: `Question ${index + 1}: This is a sample question about IT skills and knowledge related to basic computer operations, software usage, or information technology concepts.`,
@@ -30,10 +47,20 @@ const mockExam = {
   }))
 };
 
+// Enum for exam stages
+enum ExamStage {
+  Guidelines,
+  CandidatePhoto,
+  IdPhoto,
+  Exam,
+  Completed
+}
+
 const ExamTest = () => {
   const { examId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const webcamRef = useRef<HTMLVideoElement>(null);
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -41,6 +68,10 @@ const ExamTest = () => {
   const [examSubmitted, setExamSubmitted] = useState(false);
   const [isLeaveDialogOpen, setIsLeaveDialogOpen] = useState(false);
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [examStage, setExamStage] = useState(ExamStage.Guidelines);
+  const [candidatePhoto, setCandidatePhoto] = useState<string | null>(null);
+  const [idPhoto, setIdPhoto] = useState<string | null>(null);
+  const [cameraActive, setCameraActive] = useState(false);
   
   // If user is not a candidate, redirect them
   useEffect(() => {
@@ -54,23 +85,54 @@ const ExamTest = () => {
     }
   }, [user, navigate]);
 
-  // Handle timer
+  // Handle camera access
   useEffect(() => {
-    if (examSubmitted) return;
-    
-    const timer = setInterval(() => {
-      setRemainingTime(prev => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          submitExam();
-          return 0;
+    if (examStage === ExamStage.CandidatePhoto || examStage === ExamStage.IdPhoto || examStage === ExamStage.Exam) {
+      const enableCamera = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          if (webcamRef.current) {
+            webcamRef.current.srcObject = stream;
+            setCameraActive(true);
+          }
+        } catch (err) {
+          console.error("Error accessing camera:", err);
+          toast({
+            title: "Camera Access Failed",
+            description: "Please allow camera access to continue the exam.",
+            variant: "destructive",
+          });
         }
-        return prev - 1;
-      });
-    }, 1000);
+      };
+      
+      enableCamera();
+      
+      return () => {
+        if (cameraActive && webcamRef.current?.srcObject) {
+          const tracks = (webcamRef.current.srcObject as MediaStream).getTracks();
+          tracks.forEach(track => track.stop());
+        }
+      };
+    }
+  }, [examStage]);
 
-    return () => clearInterval(timer);
-  }, [examSubmitted]);
+  // Handle timer when exam starts
+  useEffect(() => {
+    if (examStage === ExamStage.Exam && !examSubmitted) {
+      const timer = setInterval(() => {
+        setRemainingTime(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            submitExam();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [examStage, examSubmitted]);
 
   // Format time as MM:SS
   const formatTime = (seconds: number) => {
@@ -82,7 +144,7 @@ const ExamTest = () => {
   // Prevent leaving the exam
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!examSubmitted) {
+      if (examStage === ExamStage.Exam && !examSubmitted) {
         e.preventDefault();
         e.returnValue = '';
       }
@@ -93,7 +155,7 @@ const ExamTest = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [examSubmitted]);
+  }, [examStage, examSubmitted]);
 
   const handleAnswer = (questionId: string, answerId: string) => {
     setAnswers(prev => ({
@@ -114,9 +176,49 @@ const ExamTest = () => {
     }
   };
 
+  const goToQuestion = (index: number) => {
+    if (index >= 0 && index < mockExam.questions.length) {
+      setCurrentQuestionIndex(index);
+    }
+  };
+
+  const takeCandidatePhoto = () => {
+    if (webcamRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = webcamRef.current.videoWidth;
+      canvas.height = webcamRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(webcamRef.current, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        setCandidatePhoto(dataUrl);
+        setExamStage(ExamStage.IdPhoto);
+      }
+    }
+  };
+
+  const takeIdPhoto = () => {
+    if (webcamRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = webcamRef.current.videoWidth;
+      canvas.height = webcamRef.current.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(webcamRef.current, 0, 0);
+        const dataUrl = canvas.toDataURL('image/png');
+        setIdPhoto(dataUrl);
+      }
+    }
+  };
+
+  const startExam = () => {
+    setExamStage(ExamStage.Exam);
+  };
+
   const submitExam = () => {
     // In a real app, you would send the answers to the server
     setExamSubmitted(true);
+    setExamStage(ExamStage.Completed);
     toast({
       title: "Exam Submitted",
       description: "Your answers have been recorded successfully.",
@@ -125,7 +227,7 @@ const ExamTest = () => {
   };
 
   const attemptToLeave = () => {
-    if (!examSubmitted) {
+    if (examStage === ExamStage.Exam && !examSubmitted) {
       setIsLeaveDialogOpen(true);
     } else {
       navigate('/dashboard');
@@ -134,14 +236,205 @@ const ExamTest = () => {
 
   const currentQuestion = mockExam.questions[currentQuestionIndex];
   const progress = (currentQuestionIndex + 1) / mockExam.totalQuestions * 100;
+  
+  // Guidelines screen
+  if (examStage === ExamStage.Guidelines) {
+    return (
+      <div className="min-h-screen bg-[#F5F6FA] flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-3xl bg-white">
+          <CardHeader className="border-b">
+            <CardTitle className="text-xl text-exam-purple">{mockExam.title} - Guidelines</CardTitle>
+            <CardDescription>Please read all instructions carefully before proceeding</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <div className="flex items-start gap-3">
+                <div className="bg-exam-light p-3 rounded-full mt-1">
+                  <Info className="h-5 w-5 text-exam-purple" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Exam Instructions</h3>
+                  <ul className="list-disc pl-5 space-y-2">
+                    {mockExam.instructions.map((instruction, i) => (
+                      <li key={i}>{instruction}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-amber-50 p-3 rounded-full mt-1">
+                  <AlertTriangle className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg mb-2">Important Notice</h3>
+                  <p>You will need to allow camera access for identity verification and proctoring purposes. Your exam session will be monitored for any suspicious activities.</p>
+                </div>
+              </div>
+              
+              <div className="border-t pt-6 mt-6">
+                <Button
+                  onClick={() => setExamStage(ExamStage.CandidatePhoto)}
+                  className="w-full bg-exam-purple hover:bg-purple-800"
+                >
+                  I understand and want to proceed <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  // Candidate photo screen
+  if (examStage === ExamStage.CandidatePhoto) {
+    return (
+      <div className="min-h-screen bg-[#F5F6FA] flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-3xl bg-white">
+          <CardHeader className="border-b">
+            <CardTitle className="text-xl text-exam-purple">Candidate Photo Verification</CardTitle>
+            <CardDescription>Please position your face clearly in the frame</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <div className="flex flex-col items-center">
+                <div className="relative w-full max-w-md aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                  {!candidatePhoto ? (
+                    <video
+                      ref={webcamRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={candidatePhoto}
+                      alt="Candidate"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  
+                  {!candidatePhoto && (
+                    <div className="absolute inset-0 border-2 border-dashed border-white/50 m-4 pointer-events-none"></div>
+                  )}
+                </div>
+                
+                {!candidatePhoto ? (
+                  <Button
+                    onClick={takeCandidatePhoto}
+                    className="bg-exam-purple hover:bg-purple-800 flex items-center gap-2"
+                  >
+                    <Camera className="h-4 w-4" /> Take Photo
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCandidatePhoto(null)}
+                    >
+                      Retake
+                    </Button>
+                    <Button
+                      onClick={() => setExamStage(ExamStage.IdPhoto)}
+                      className="bg-exam-purple hover:bg-purple-800"
+                    >
+                      Continue <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3">
+                <Info className="h-5 w-5 text-exam-blue shrink-0 mt-0.5" />
+                <p className="text-sm">Please ensure your face is clearly visible and well-lit. This photo will be used for verification purposes throughout the exam.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
+  // ID photo screen
+  if (examStage === ExamStage.IdPhoto) {
+    return (
+      <div className="min-h-screen bg-[#F5F6FA] flex flex-col items-center justify-center p-4">
+        <Card className="w-full max-w-3xl bg-white">
+          <CardHeader className="border-b">
+            <CardTitle className="text-xl text-exam-purple">ID Verification</CardTitle>
+            <CardDescription>Please show your ID card to the camera</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-6">
+              <div className="flex flex-col items-center">
+                <div className="relative w-full max-w-md aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                  {!idPhoto ? (
+                    <video
+                      ref={webcamRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <img
+                      src={idPhoto}
+                      alt="ID"
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  
+                  {!idPhoto && (
+                    <div className="absolute inset-0 border-2 border-dashed border-white/50 m-4 pointer-events-none"></div>
+                  )}
+                </div>
+                
+                {!idPhoto ? (
+                  <Button
+                    onClick={takeIdPhoto}
+                    className="bg-exam-purple hover:bg-purple-800 flex items-center gap-2"
+                  >
+                    <Camera className="h-4 w-4" /> Take Photo
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setIdPhoto(null)}
+                    >
+                      Retake
+                    </Button>
+                    <Button
+                      onClick={startExam}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Start Exam <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg flex items-start gap-3">
+                <Info className="h-5 w-5 text-exam-blue shrink-0 mt-0.5" />
+                <p className="text-sm">Hold your valid ID card (Aadhar Card, PAN Card, Driving License, etc.) in front of the camera. Ensure all details are clearly visible.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-  if (examSubmitted) {
+  // Exam completed screen
+  if (examStage === ExamStage.Completed) {
     return (
       <div className="min-h-screen bg-[#F5F6FA] flex flex-col items-center justify-center p-4">
         <Card className="w-full max-w-3xl bg-white">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
-              <CheckCircle2 className="mx-auto h-16 w-16 text-[#50C878]" />
+              <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
               <h1 className="text-2xl font-bold text-[#333333]">Exam Completed!</h1>
               <p className="text-muted-foreground">
                 Thank you for completing the {mockExam.title}.
@@ -151,7 +444,7 @@ const ExamTest = () => {
               </p>
               <Button 
                 onClick={() => navigate('/dashboard')}
-                className="mt-4 bg-[#4A90E2] hover:bg-[#4A90E2]/90 text-white"
+                className="mt-4 bg-exam-purple hover:bg-purple-800 text-white"
               >
                 Return to Dashboard
               </Button>
@@ -162,92 +455,184 @@ const ExamTest = () => {
     );
   }
 
+  // Main exam screen
   return (
-    <div className="min-h-screen bg-[#F5F6FA] flex flex-col">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 py-3 px-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <Button 
-            variant="outline" 
-            size="icon"
-            className="mr-2"
-            onClick={attemptToLeave}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-xl font-bold text-[#333333]">{mockExam.title}</h1>
+    <div className="min-h-screen bg-[#F5F6FA] grid grid-cols-1 md:grid-cols-4">
+      {/* Left panel - Questions */}
+      <div className="col-span-1 md:col-span-3 flex flex-col h-screen">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 py-3 px-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <Button 
+              variant="outline" 
+              size="icon"
+              className="mr-2"
+              onClick={attemptToLeave}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-xl font-bold text-[#333333]">{mockExam.title}</h1>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4 text-[#4A90E2]" />
+            <span className={`font-mono ${remainingTime < 300 ? 'text-[#FF6B6B] font-bold' : ''}`}>
+              {formatTime(remainingTime)}
+            </span>
+          </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-[#4A90E2]" />
-          <span className={`font-mono ${remainingTime < 300 ? 'text-[#FF6B6B] font-bold' : ''}`}>
-            {formatTime(remainingTime)}
-          </span>
+        {/* Progress bar */}
+        <div className="bg-white px-4 py-2 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-1 text-sm">
+            <span>Question {currentQuestionIndex + 1} of {mockExam.totalQuestions}</span>
+            <span>{Math.round(progress)}% Complete</span>
+          </div>
+          <Progress value={progress} className="h-2" />
         </div>
-      </div>
-      
-      {/* Progress bar */}
-      <div className="bg-white px-4 py-2 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-1 text-sm">
-          <span>Question {currentQuestionIndex + 1} of {mockExam.totalQuestions}</span>
-          <span>{Math.round(progress)}% Complete</span>
+        
+        {/* Question */}
+        <div className="flex-1 p-4 overflow-auto">
+          <Card className="bg-white">
+            <CardContent className="pt-6">
+              <div className="space-y-6">
+                <h2 className="text-lg font-medium text-[#333333]">{currentQuestion.text}</h2>
+                
+                <RadioGroup
+                  value={answers[currentQuestion.id] || ""}
+                  onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
+                  className="space-y-4"
+                >
+                  {currentQuestion.options.map((option) => (
+                    <div key={option.id} className="flex items-center space-x-2 p-3 rounded-md border border-gray-200 hover:bg-[#F5F6FA]">
+                      <RadioGroupItem value={option.id} id={option.id} />
+                      <Label htmlFor={option.id} className="flex-1 cursor-pointer text-[#333333]">
+                        {option.text}
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-        <Progress value={progress} className="h-2" />
-      </div>
-      
-      {/* Question */}
-      <div className="flex-1 p-4 overflow-auto">
-        <Card className="w-full max-w-3xl mx-auto bg-white">
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <h2 className="text-lg font-medium text-[#333333]">{currentQuestion.text}</h2>
-              
-              <RadioGroup
-                value={answers[currentQuestion.id] || ""}
-                onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
-                className="space-y-4"
-              >
-                {currentQuestion.options.map((option) => (
-                  <div key={option.id} className="flex items-center space-x-2 p-3 rounded-md border border-gray-200 hover:bg-[#F5F6FA]">
-                    <RadioGroupItem value={option.id} id={option.id} />
-                    <Label htmlFor={option.id} className="flex-1 cursor-pointer text-[#333333]">
-                      {option.text}
-                    </Label>
-                  </div>
-                ))}
-              </RadioGroup>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Actions */}
-      <div className="bg-white border-t border-gray-200 p-4">
-        <div className="flex justify-between max-w-3xl mx-auto">
-          <Button 
-            variant="outline" 
-            onClick={goToPrevQuestion}
-            disabled={currentQuestionIndex === 0}
-            className="border-[#E5E7EB] text-[#333333]"
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-          
-          {currentQuestionIndex === mockExam.questions.length - 1 ? (
+        
+        {/* Actions */}
+        <div className="bg-white border-t border-gray-200 p-4">
+          <div className="flex justify-between">
             <Button 
+              variant="outline" 
+              onClick={goToPrevQuestion}
+              disabled={currentQuestionIndex === 0}
+              className="border-[#E5E7EB] text-[#333333]"
+            >
+              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+            </Button>
+            
+            {currentQuestionIndex === mockExam.questions.length - 1 ? (
+              <Button 
+                onClick={() => setIsSubmitDialogOpen(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Submit Exam
+              </Button>
+            ) : (
+              <Button 
+                onClick={goToNextQuestion}
+                className="bg-exam-purple hover:bg-purple-800 text-white"
+              >
+                Next <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+      
+      {/* Right panel - Webcam and question navigation */}
+      <div className="hidden md:block md:col-span-1 bg-white border-l border-gray-200 h-screen overflow-y-auto">
+        <div className="p-4 flex flex-col h-full">
+          {/* Webcam preview */}
+          <div className="mb-4">
+            <h3 className="font-medium text-sm mb-2">Proctoring Camera</h3>
+            <div className="aspect-video bg-black rounded-lg overflow-hidden">
+              <video
+                ref={webcamRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+          
+          {/* Question navigation */}
+          <div className="flex-1 overflow-y-auto">
+            <h3 className="font-medium text-sm mb-2">Question Navigation</h3>
+            <div className="grid grid-cols-5 gap-2">
+              {mockExam.questions.map((q, index) => {
+                const isAnswered = answers[q.id] !== undefined;
+                const isActive = index === currentQuestionIndex;
+                
+                return (
+                  <Button
+                    key={q.id}
+                    variant="outline"
+                    size="sm"
+                    className={`h-10 w-10 p-0 flex items-center justify-center ${
+                      isActive ? 'border-exam-purple border-2' : 
+                      isAnswered ? 'bg-green-100 text-green-800 border-green-200' : ''
+                    }`}
+                    onClick={() => goToQuestion(index)}
+                  >
+                    {isAnswered ? (
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        <span>{index + 1}</span>
+                        <CheckCheck className="h-3 w-3 absolute bottom-0.5 right-0.5 text-green-600" />
+                      </div>
+                    ) : (
+                      <span>{index + 1}</span>
+                    )}
+                  </Button>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Exam summary */}
+          <div className="mt-4 pt-4 border-t">
+            <h3 className="font-medium text-sm mb-2">Exam Progress</h3>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span>Answered</span>
+                <span className="font-medium">{Object.keys(answers).length} / {mockExam.totalQuestions}</span>
+              </div>
+              <Progress 
+                value={(Object.keys(answers).length / mockExam.totalQuestions) * 100} 
+                className="h-2 bg-gray-100" 
+                indicatorClassName="bg-green-600" 
+              />
+              
+              <div className="flex items-center justify-between text-sm">
+                <span>Time Remaining</span>
+                <span className={`font-medium ${remainingTime < 300 ? 'text-red-600' : ''}`}>
+                  {formatTime(remainingTime)}
+                </span>
+              </div>
+              <Progress 
+                value={(remainingTime / (mockExam.duration * 60)) * 100} 
+                className="h-2 bg-gray-100" 
+                indicatorClassName={`${remainingTime < 300 ? 'bg-red-500' : 'bg-blue-600'}`}
+              />
+            </div>
+            
+            {/* Submit button */}
+            <Button
               onClick={() => setIsSubmitDialogOpen(true)}
-              className="bg-[#50C878] hover:bg-[#50C878]/90 text-white"
+              className="w-full mt-4 bg-green-600 hover:bg-green-700"
             >
               Submit Exam
             </Button>
-          ) : (
-            <Button 
-              onClick={goToNextQuestion}
-              className="bg-[#4A90E2] hover:bg-[#4A90E2]/90 text-white"
-            >
-              Next <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          )}
+          </div>
         </div>
       </div>
       
@@ -300,7 +685,7 @@ const ExamTest = () => {
                 setIsSubmitDialogOpen(false);
                 submitExam();
               }}
-              className="bg-[#50C878]"
+              className="bg-green-600"
             >
               Submit Exam
             </AlertDialogAction>
