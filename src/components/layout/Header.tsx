@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -6,15 +7,18 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+
 const Header = () => {
   const navigate = useNavigate();
   const {
     logout
   } = useAuth();
+  
   const handleLogout = () => {
     logout();
     // No navigation here - the logout function will handle redirection
   };
+  
   return <header className="bg-white border-b border-gray-200 py-3 px-4 flex items-center justify-between">
       <div className="flex items-center">
         <SidebarTrigger className="mr-2" />
@@ -56,4 +60,5 @@ const Header = () => {
       </div>
     </header>;
 };
+
 export default Header;

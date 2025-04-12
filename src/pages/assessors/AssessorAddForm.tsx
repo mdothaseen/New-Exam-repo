@@ -337,7 +337,7 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
             <Label htmlFor="district">District <span className="text-red-500">*</span></Label>
             <Select value={formData.district} onValueChange={(value) => handleChange('district', value)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select" />
+                <SelectValue placeholder="Select District" />
               </SelectTrigger>
               <SelectContent>
                 {/* Districts would be populated based on selected state */}
@@ -395,7 +395,7 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
                 onValueChange={(value) => handleCertificationChange(0, 'sector', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select" />
+                  <SelectValue placeholder="Select Sector" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="it-ites">IT-ITES</SelectItem>
@@ -413,7 +413,7 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
                 onValueChange={(value) => handleCertificationChange(0, 'jobRole', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select" />
+                  <SelectValue placeholder="Select Job Role" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="developer">Developer</SelectItem>
@@ -449,7 +449,7 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
                 onValueChange={(value) => handleCertificationChange(0, 'type', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select" />
+                  <SelectValue placeholder="Select Type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="full">Full</SelectItem>

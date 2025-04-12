@@ -157,7 +157,7 @@ const Assessors = () => {
                   <SelectValue placeholder="Filter by Sector" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Sectors</SelectItem>
+                  <SelectItem value="all-sectors">All Sectors</SelectItem>
                   <SelectItem value="IT-ITES">IT-ITES</SelectItem>
                   <SelectItem value="Healthcare">Healthcare</SelectItem>
                   <SelectItem value="Electronics">Electronics</SelectItem>
@@ -171,7 +171,7 @@ const Assessors = () => {
                   <SelectValue placeholder="Filter by Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Statuses</SelectItem>
+                  <SelectItem value="all-statuses">All Statuses</SelectItem>
                   <SelectItem value="Active">Active</SelectItem>
                   <SelectItem value="Inactive">Inactive</SelectItem>
                   <SelectItem value="Pending">Pending</SelectItem>
