@@ -6,7 +6,6 @@ import FormStepIndicator from './components/FormStepIndicator';
 import PersonalDetailsStep from './components/PersonalDetailsStep';
 import ContactDetailsStep from './components/ContactDetailsStep';
 import CertificationStep from './components/CertificationStep';
-import StepPlaceholder from './components/StepPlaceholder';
 
 const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
   const [currentStep, setCurrentStep] = useState<FormStep>(FormStep.PersonalDetails);
@@ -31,12 +30,6 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
     pinCode: '',
     address: '',
 
-    // Education (would be an array in a real app)
-    education: [{ degree: '', university: '', year: '', percentage: '' }],
-
-    // Experience (would be an array in a real app)
-    experience: [{ company: '', position: '', duration: '', description: '' }],
-
     // Certification (would be an array in a real app)
     certification: [{ 
       sector: '', 
@@ -50,9 +43,6 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
       validityTill: null,
       certificate: null,
     }],
-
-    // Assessment Agencies (would be an array in a real app)
-    assessmentAgencies: [{ name: '', domainExpert: false }]
   });
 
   const handleChange = (field: string, value: any) => {
@@ -77,7 +67,7 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
     onSubmit(formData);
   };
 
-  const isLastStep = currentStep === FormStep.AssessmentAgencies;
+  const isLastStep = currentStep === FormStep.Certification;
 
   const renderCurrentStep = () => {
     switch (currentStep) {
@@ -88,7 +78,7 @@ const AssessorAddForm: React.FC<AssessorAddFormProps> = ({ onSubmit }) => {
       case FormStep.Certification:
         return <CertificationStep formData={formData} handleCertificationChange={handleCertificationChange} />;
       default:
-        return <StepPlaceholder stepNumber={currentStep} stepTitle={stepTitles[currentStep]} />;
+        return null;
     }
   };
 

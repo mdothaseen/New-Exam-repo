@@ -2,19 +2,13 @@
 export enum FormStep {
   PersonalDetails = 0,
   ContactDetails = 1,
-  Education = 2,
-  Experience = 3,
-  Certification = 4,
-  AssessmentAgencies = 5,
+  Certification = 2,
 }
 
 export const stepTitles = [
   "Personal Details",
   "Contact Details",
-  "Education",
-  "Experience",
-  "Certification",
-  "Assessment Agencies"
+  "Certification"
 ];
 
 export interface AssessorFormData {
@@ -38,22 +32,6 @@ export interface AssessorFormData {
   pinCode: string;
   address: string;
 
-  // Education (would be an array in a real app)
-  education: Array<{
-    degree: string;
-    university: string;
-    year: string;
-    percentage: string;
-  }>;
-
-  // Experience (would be an array in a real app)
-  experience: Array<{
-    company: string;
-    position: string;
-    duration: string;
-    description: string;
-  }>;
-
   // Certification (would be an array in a real app)
   certification: Array<{
     sector: string;
@@ -66,12 +44,6 @@ export interface AssessorFormData {
     validityFrom: Date | null;
     validityTill: Date | null;
     certificate: any;
-  }>;
-
-  // Assessment Agencies (would be an array in a real app)
-  assessmentAgencies: Array<{ 
-    name: string; 
-    domainExpert: boolean 
   }>;
 }
 

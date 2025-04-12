@@ -9,7 +9,7 @@ interface FormStepIndicatorProps {
 
 const FormStepIndicator: React.FC<FormStepIndicatorProps> = ({ currentStep }) => {
   return (
-    <div className="flex justify-between mb-8">
+    <div className="flex justify-center gap-8 mb-8">
       {stepTitles.map((title, index) => (
         <div key={index} className="flex flex-col items-center">
           <div 
@@ -24,7 +24,7 @@ const FormStepIndicator: React.FC<FormStepIndicatorProps> = ({ currentStep }) =>
           >
             {index < currentStep ? '✓' : index + 1}
           </div>
-          <span className="text-sm text-center hidden md:block">{title}</span>
+          <span className="text-sm text-center">{title}</span>
         </div>
       ))}
     </div>
