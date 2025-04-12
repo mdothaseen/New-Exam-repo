@@ -10,6 +10,8 @@ export const examFormSchema = z.object({
   tpName: z.string().min(1, { message: 'TP name is required' }),
   tcName: z.string().min(1, { message: 'TC name is required' }),
   address: z.string().min(1, { message: 'Address is required' }),
+  state: z.string().min(1, { message: 'State is required' }),
+  district: z.string().min(1, { message: 'District is required' }),
   candidates: z.string().min(1, { message: 'Number of candidates is required' })
     .refine((val) => !isNaN(Number(val)), { message: 'Must be a number' }),
   scheduled: z.string().min(1, { message: 'Scheduled count is required' })
