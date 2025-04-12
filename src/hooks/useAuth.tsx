@@ -28,13 +28,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check local storage for existing session on mount
+  // Enhanced session check to debug auto-logout issues
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const checkSession = () => {
+      const storedUser = localStorage.getItem('user');
+      console.log("Checking auth session, stored user:", storedUser ? "exists" : "none");
+      
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+        } catch (error) {
+          console.error("Failed to parse stored user:", error);
+          localStorage.removeItem('user');
+        }
+      }
+    };
+
+    checkSession();
+    
+    // Re-check if we're on a protected route
+    if (location.pathname !== '/login' && !user) {
+      checkSession();
     }
-  }, []);
+  }, [location.pathname]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -83,6 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Check if email exists and password is "password" (for demo)
       if (mockUsers[email] && password === "password") {
         const loggedInUser = mockUsers[email];
+        console.log("Login successful:", loggedInUser);
         setUser(loggedInUser);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
 
@@ -104,6 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    console.log("Logging out user:", user?.email);
     setUser(null);
     localStorage.removeItem('user');
     // Navigate to login regardless of current location

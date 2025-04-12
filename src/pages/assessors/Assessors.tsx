@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { Card } from '@/components/ui/card';
 import { mockAssessors } from './mock-data';
@@ -8,12 +8,19 @@ import AssessorHeader from './components/AssessorHeader';
 import AssessorFilters from './components/AssessorFilters';
 import AssessorTable from './components/AssessorTable';
 import AddAssessorDialog from './components/AddAssessorDialog';
+import { useAuth } from '@/hooks/useAuth';
 
 const Assessors = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSector, setFilterSector] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { user } = useAuth();
+
+  // Add check to ensure component is mounted with valid authentication
+  useEffect(() => {
+    console.log("Assessors component mounted, user:", user);
+  }, [user]);
 
   const filteredAssessors = mockAssessors.filter(assessor => {
     const matchesSearch = searchTerm === '' || 
@@ -33,6 +40,12 @@ const Assessors = () => {
     setDialogOpen(false);
     // You could also add the new assessor to your local state
   };
+
+  // Defensive render to avoid blank screen
+  if (!user) {
+    console.log("No user in Assessors component, should redirect soon");
+    return <div className="p-8 text-center">Verifying authentication...</div>;
+  }
 
   return (
     <AdminLayout>
