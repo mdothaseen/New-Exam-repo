@@ -16,6 +16,8 @@ import ExamTest from "./pages/exam/ExamTest";
 import Login from "./pages/auth/Login";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Index from "./pages/Index";
+import ScheduleExam from "./pages/ScheduleExam"; // New import
+import Assessors from "./pages/assessors/Assessors"; // New import
 
 const queryClient = new QueryClient();
 
@@ -39,6 +41,11 @@ const App = () => (
         <Route path="/reports" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/reports/:tab" element={<ProtectedRoute><ReportsPage /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        
+        {/* New Routes */}
+        <Route path="/schedule" element={<ProtectedRoute><ScheduleExam /></ProtectedRoute>} />
+        <Route path="/assessors" element={<ProtectedRoute><Assessors /></ProtectedRoute>} />
+        
         <Route path="*" element={<NotFound />} />
       </Routes>
     </TooltipProvider>

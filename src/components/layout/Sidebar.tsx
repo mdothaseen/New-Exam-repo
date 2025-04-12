@@ -13,7 +13,8 @@ import {
   BookOpen,
   CalendarCheck,
   FileSpreadsheet,
-  CheckCircle
+  CheckCircle,
+  UserCheck
 } from 'lucide-react';
 
 import {
@@ -49,6 +50,7 @@ const Sidebar = () => {
     { icon: BarChart4, label: 'Dashboard', path: '/dashboard' },
     { icon: School, label: 'Exams', path: '/exams' },
     { icon: CalendarCheck, label: 'Schedule Exams', path: '/schedule' },
+    { icon: UserCheck, label: 'Assessors', path: '/assessors' },
     { icon: Users, label: 'Manage Candidates', path: '/users/candidates' },
     { icon: BookOpen, label: 'Question Bank', path: '/content' },
     { icon: MonitorPlay, label: 'AI Proctoring', path: '/monitoring' },

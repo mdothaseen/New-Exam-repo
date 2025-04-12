@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export type UserRole = 'admin' | 'assessor' | 'candidate' | 'team' | 'ssc';
 
@@ -26,6 +26,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Check local storage for existing session on mount
   useEffect(() => {
@@ -40,40 +41,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // This is just a mock login for demonstration
       // In a real app, you would validate credentials against your backend
       
-      // Mock users for demonstration
+      // Mock users for demonstration - Updated to CeeVision emails
       const mockUsers: Record<string, User> = {
-        'admin@skillpulse.org': {
+        'admin@ceevision.in': {
           id: '1',
           name: 'Admin User',
-          email: 'admin@skillpulse.org',
+          email: 'admin@ceevision.in',
           role: 'admin',
           permissions: ['all']
         },
-        'assessor@skillpulse.org': {
+        'assessor@ceevision.in': {
           id: '2',
           name: 'Assessor User',
-          email: 'assessor@skillpulse.org',
+          email: 'assessor@ceevision.in',
           role: 'assessor',
           permissions: ['view_candidates', 'view_batches', 'conduct_assessment']
         },
-        'candidate@skillpulse.org': {
+        'candidate@ceevision.in': {
           id: '3',
           name: 'Candidate User',
-          email: 'candidate@skillpulse.org',
+          email: 'candidate@ceevision.in',
           role: 'candidate',
           permissions: ['take_exam', 'view_results']
         },
-        'team@skillpulse.org': {
+        'team@ceevision.in': {
           id: '4',
           name: 'Team/NCVET User',
-          email: 'team@skillpulse.org',
+          email: 'team@ceevision.in',
           role: 'team',
           permissions: ['view_reports', 'view_candidates']
         },
-        'ssc@skillpulse.org': {
+        'ssc@ceevision.in': {
           id: '5',
           name: 'SSC User',
-          email: 'ssc@skillpulse.org',
+          email: 'ssc@ceevision.in',
           role: 'ssc',
           permissions: ['view_content', 'view_reports']
         }
@@ -105,6 +106,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    // Navigate to login regardless of current location
     navigate('/login');
   };
 
