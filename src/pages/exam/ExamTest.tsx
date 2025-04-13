@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -12,25 +11,25 @@ import {
   AlertDialogHeader, AlertDialogTitle 
 } from "@/components/ui/alert-dialog";
 import { 
-  Clock, AlertCircle, ChevronLeft, ChevronRight, CheckCircle2, 
-  Camera, AlertTriangle, Info, ArrowRight, CheckCheck
-} from "lucide-react";
+  ArrowLeft, ArrowRight, Clock, Camera, Info, AlertTriangle, 
+  Flag, Award, PartyPopper, CheckCircle2
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { toast } from '@/components/ui/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 // Mock exam data
 const mockExam = {
   id: 'demo-exam',
   title: 'Basic IT Skills Assessment',
-  duration: 30, // minutes
+  duration: 60, // minutes
   totalQuestions: 20,
   instructions: [
     "Read each question carefully before answering.",
     "You will be monitored through your webcam during the exam.",
     "Switching tabs or windows may be flagged as suspicious activity.",
     "Ensure you have a stable internet connection throughout the exam.",
-    "You have 30 minutes to complete all questions.",
+    "You have 60 minutes to complete all questions.",
     "You can review and change your answers before final submission.",
     "Once time expires, your exam will be automatically submitted."
   ],
@@ -61,6 +60,7 @@ const ExamTest = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const webcamRef = useRef<HTMLVideoElement>(null);
+  const { toast } = useToast();
   
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -72,6 +72,10 @@ const ExamTest = () => {
   const [candidatePhoto, setCandidatePhoto] = useState<string | null>(null);
   const [idPhoto, setIdPhoto] = useState<string | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [faceVisible, setFaceVisible] = useState(true);
+  const [consecutiveNoFaceFrames, setConsecutiveNoFaceFrames] = useState(0);
+  const [alertShown, setAlertShown] = useState(false);
+  const [confettiActive, setConfettiActive] = useState(false);
   
   // If user is not a candidate, redirect them
   useEffect(() => {
@@ -85,7 +89,7 @@ const ExamTest = () => {
     }
   }, [user, navigate]);
 
-  // Handle camera access
+  // Handle camera access with simulated face detection
   useEffect(() => {
     if (examStage === ExamStage.CandidatePhoto || examStage === ExamStage.IdPhoto || examStage === ExamStage.Exam) {
       const enableCamera = async () => {
@@ -94,6 +98,11 @@ const ExamTest = () => {
           if (webcamRef.current) {
             webcamRef.current.srcObject = stream;
             setCameraActive(true);
+            
+            // Start simulated face detection if in exam stage
+            if (examStage === ExamStage.Exam) {
+              startFaceDetection();
+            }
           }
         } catch (err) {
           console.error("Error accessing camera:", err);
@@ -114,7 +123,43 @@ const ExamTest = () => {
         }
       };
     }
-  }, [examStage]);
+  }, [examStage, toast]);
+
+  // Simulated face detection function
+  const startFaceDetection = () => {
+    if (!webcamRef.current) return;
+    
+    // Randomly simulate face detection/loss for demo purposes
+    const interval = setInterval(() => {
+      // 90% chance of face being detected, 10% chance of face not being detected
+      const faceDetected = Math.random() > 0.1;
+      setFaceVisible(faceDetected);
+      
+      if (!faceDetected) {
+        setConsecutiveNoFaceFrames(prev => prev + 1);
+        
+        // If face not detected for 3 consecutive checks
+        if (consecutiveNoFaceFrames >= 2 && !alertShown) {
+          setAlertShown(true);
+          toast({
+            title: "Warning: Face Not Detected",
+            description: "Please ensure your face is clearly visible in the camera.",
+            variant: "destructive",
+            duration: 5000,
+          });
+          
+          // Reset alert shown flag after 10 seconds
+          setTimeout(() => {
+            setAlertShown(false);
+          }, 10000);
+        }
+      } else {
+        setConsecutiveNoFaceFrames(0);
+      }
+    }, 3000);
+    
+    return () => clearInterval(interval);
+  };
 
   // Handle timer when exam starts
   useEffect(() => {
@@ -219,11 +264,18 @@ const ExamTest = () => {
     // In a real app, you would send the answers to the server
     setExamSubmitted(true);
     setExamStage(ExamStage.Completed);
+    setConfettiActive(true);
+    
     toast({
       title: "Exam Submitted",
       description: "Your answers have been recorded successfully.",
       variant: "default",
     });
+    
+    // Turn off confetti after 8 seconds instead of 5
+    setTimeout(() => {
+      setConfettiActive(false);
+    }, 8000);
   };
 
   const attemptToLeave = () => {
@@ -237,6 +289,21 @@ const ExamTest = () => {
   const currentQuestion = mockExam.questions[currentQuestionIndex];
   const progress = (currentQuestionIndex + 1) / mockExam.totalQuestions * 100;
   
+  const renderFaceDetectionAlert = () => {
+    if (examStage === ExamStage.Exam && !faceVisible) {
+      return (
+        <div className="fixed top-4 right-4 bg-red-100 border-l-4 border-red-500 p-4 flex items-start gap-3 max-w-xs z-50 animate-pulse">
+          <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
+          <div>
+            <h3 className="font-medium text-red-800">Face Not Detected</h3>
+            <p className="text-sm text-red-700">Please ensure you are visible in the camera.</p>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  };
+
   // Guidelines screen
   if (examStage === ExamStage.Guidelines) {
     return (
@@ -427,29 +494,125 @@ const ExamTest = () => {
     );
   }
 
-  // Exam completed screen
+  // Completed exam screen with celebration
   if (examStage === ExamStage.Completed) {
     return (
-      <div className="min-h-screen bg-[#F5F6FA] flex flex-col items-center justify-center p-4">
-        <Card className="w-full max-w-3xl bg-white">
-          <CardContent className="pt-6">
-            <div className="text-center space-y-4">
-              <CheckCircle2 className="mx-auto h-16 w-16 text-green-500" />
-              <h1 className="text-2xl font-bold text-[#333333]">Exam Completed!</h1>
-              <p className="text-muted-foreground">
-                Thank you for completing the {mockExam.title}.
-              </p>
-              <p className="text-muted-foreground">
-                Your answers have been recorded and will be evaluated.
-              </p>
-              <Button 
-                onClick={() => navigate('/dashboard')}
-                className="mt-4 bg-exam-purple hover:bg-purple-800 text-white"
-              >
-                Return to Dashboard
-              </Button>
+      <div className="min-h-screen bg-[#F5F6FA] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {confettiActive && (
+          <div className="absolute inset-0 pointer-events-none">
+            {/* Fixed animations with proper classes */}
+            <div className="absolute top-0 left-1/4 animate-float">
+              <PartyPopper className="h-12 w-12 text-yellow-500" />
+            </div>
+            <div className="absolute top-0 right-1/4 animate-float animation-delay-300">
+              <PartyPopper className="h-12 w-12 text-purple-500" />
+            </div>
+            <div className="absolute top-1/4 left-1/3 animate-float animation-delay-500">
+              <PartyPopper className="h-12 w-12 text-sky-500" />
+            </div>
+            <div className="absolute top-1/4 right-1/3 animate-float animation-delay-700">
+              <PartyPopper className="h-12 w-12 text-red-500" />
+            </div>
+            <div className="absolute bottom-1/4 left-1/3 animate-float animation-delay-200">
+              <PartyPopper className="h-12 w-12 text-pink-500" />
+            </div>
+            <div className="absolute bottom-1/4 right-1/3 animate-float animation-delay-600">
+              <PartyPopper className="h-12 w-12 text-indigo-500" />
+            </div>
+            <div className="absolute top-1/2 left-1/4 animate-float animation-delay-1000">
+              <PartyPopper className="h-12 w-12 text-green-500" />
+            </div>
+            <div className="absolute top-1/2 right-1/4 animate-float animation-delay-1200">
+              <PartyPopper className="h-12 w-12 text-orange-500" />
+            </div>
+            
+            {/* Additional particle confetti */}
+            {Array.from({ length: 60 }).map((_, i) => (
+              <div 
+                key={i}
+                className="particle"
+                style={{ 
+                  top: `${Math.random() * 100}%`, 
+                  left: `${Math.random() * 100}%`,
+                  backgroundColor: ['#FCD34D', '#60A5FA', '#34D399', '#F87171', '#A78BFA', '#FB7185', '#38BDF8', '#FBCFE8'][Math.floor(Math.random() * 8)],
+                  width: `${Math.random() * 12 + 6}px`,
+                  height: `${Math.random() * 12 + 6}px`,
+                  borderRadius: Math.random() > 0.5 ? '50%' : '0%',
+                  opacity: 1,
+                  '--i': i
+                } as React.CSSProperties}
+              />
+            ))}
+            
+            {/* Twinkling stars effect */}
+            {Array.from({ length: 30 }).map((_, i) => (
+              <div 
+                key={`star-${i}`}
+                className="absolute"
+                style={{ 
+                  top: `${Math.random() * 100}%`, 
+                  left: `${Math.random() * 100}%`,
+                  width: '3px',
+                  height: '3px',
+                  backgroundColor: 'white',
+                  borderRadius: '50%',
+                  boxShadow: '0 0 6px 3px rgba(255, 255, 255, 0.8)',
+                  animation: `twinkle ${Math.random() * 3 + 2}s infinite ${Math.random() * 3}s`
+                }}
+              />
+            ))}
+          </div>
+        )}
+        
+        <Card className="w-full max-w-3xl bg-white animate-fade-in-up shadow-lg z-10">
+          <CardHeader className="text-center border-b bg-gradient-to-r from-purple-50 to-indigo-50 rounded-t-lg">
+            <div className="mx-auto bg-gradient-to-r from-green-400 to-emerald-500 p-4 rounded-full w-20 h-20 flex items-center justify-center mb-6 shadow-md">
+              <Award className="h-10 w-10 text-white" />
+            </div>
+            <CardTitle className="text-3xl font-bold text-exam-purple mb-2">Congratulations!</CardTitle>
+            <CardDescription className="text-lg">
+              You have successfully completed the exam
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent className="pt-8 pb-6 text-center">
+            <div className="space-y-8">
+              <div className="max-w-md mx-auto">
+                <h3 className="font-medium text-lg mb-4">Exam Summary</h3>
+                <div className="bg-gray-50 rounded-lg p-6 grid grid-cols-2 gap-6 shadow-inner">
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 mb-1">Total Questions</p>
+                    <p className="text-2xl font-bold text-exam-purple">{mockExam.totalQuestions}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-500 mb-1">Attempted</p>
+                    <p className="text-2xl font-bold text-exam-purple">{Object.keys(answers).length}</p>
+                  </div>
+                  <div className="text-center col-span-2">
+                    <p className="text-sm text-gray-500 mb-1">Time Spent</p>
+                    <p className="text-2xl font-bold text-exam-purple">{formatTime(mockExam.duration * 60 - remainingTime)}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center space-y-4">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                  <p className="text-green-600 font-medium">Exam submitted successfully</p>
+                </div>
+                <p className="text-gray-600">You will be notified once your results are available.</p>
+              </div>
             </div>
           </CardContent>
+          
+          <CardFooter className="border-t pt-6 pb-6 flex justify-center bg-gradient-to-r from-purple-50 to-indigo-50 rounded-b-lg">
+            <Button 
+              onClick={() => navigate('/dashboard')}
+              className="bg-exam-purple hover:bg-purple-800 shadow-md transform transition-transform hover:scale-105 w-full md:w-auto px-8 py-6"
+            >
+              Return to Dashboard
+            </Button>
+          </CardFooter>
         </Card>
       </div>
     );
@@ -469,7 +632,7 @@ const ExamTest = () => {
               className="mr-2"
               onClick={attemptToLeave}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-xl font-bold text-[#333333]">{mockExam.title}</h1>
           </div>
@@ -526,7 +689,7 @@ const ExamTest = () => {
               disabled={currentQuestionIndex === 0}
               className="border-[#E5E7EB] text-[#333333]"
             >
-              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
+              <ArrowLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
             
             {currentQuestionIndex === mockExam.questions.length - 1 ? (
@@ -541,7 +704,7 @@ const ExamTest = () => {
                 onClick={goToNextQuestion}
                 className="bg-exam-purple hover:bg-purple-800 text-white"
               >
-                Next <ChevronRight className="ml-2 h-4 w-4" />
+                Next <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             )}
           </div>
@@ -587,7 +750,7 @@ const ExamTest = () => {
                     {isAnswered ? (
                       <div className="relative w-full h-full flex items-center justify-center">
                         <span>{index + 1}</span>
-                        <CheckCheck className="h-3 w-3 absolute bottom-0.5 right-0.5 text-green-600" />
+                        <CheckCircle2 className="h-3 w-3 absolute bottom-0.5 right-0.5 text-green-600" />
                       </div>
                     ) : (
                       <span>{index + 1}</span>
@@ -669,7 +832,7 @@ const ExamTest = () => {
               You have answered {Object.keys(answers).length} out of {mockExam.totalQuestions} questions.
               {Object.keys(answers).length < mockExam.totalQuestions && (
                 <div className="mt-2 flex items-center text-[#FF6B6B]">
-                  <AlertCircle className="h-4 w-4 mr-1" />
+                  <AlertTriangle className="h-4 w-4 mr-1" />
                   <span>You have {mockExam.totalQuestions - Object.keys(answers).length} unanswered questions.</span>
                 </div>
               )}
