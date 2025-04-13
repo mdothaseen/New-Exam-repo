@@ -43,6 +43,14 @@ const ExamForm: React.FC = () => {
     form.reset();
   };
 
+  // Function to safely trigger click on tab
+  const goToTab = (tabValue: string) => {
+    const tabElement = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement | null;
+    if (tabElement) {
+      tabElement.click();
+    }
+  };
+
   return (
     <Card className="shadow-lg border-t-4 border-t-purple-600">
       <CardHeader className="bg-gray-50 rounded-t-lg">
@@ -82,7 +90,7 @@ const ExamForm: React.FC = () => {
                   <Button 
                     type="button" 
                     className="bg-purple-600 hover:bg-purple-700"
-                    onClick={() => document.querySelector('[data-value="center"]')?.click()}
+                    onClick={() => goToTab('center')}
                   >
                     Next Step
                   </Button>
@@ -97,14 +105,14 @@ const ExamForm: React.FC = () => {
                   <Button 
                     type="button" 
                     variant="outline"
-                    onClick={() => document.querySelector('[data-value="basic"]')?.click()}
+                    onClick={() => goToTab('basic')}
                   >
                     Previous Step
                   </Button>
                   <Button 
                     type="button" 
                     className="bg-purple-600 hover:bg-purple-700"
-                    onClick={() => document.querySelector('[data-value="assessment"]')?.click()}
+                    onClick={() => goToTab('assessment')}
                   >
                     Next Step
                   </Button>
@@ -119,7 +127,7 @@ const ExamForm: React.FC = () => {
                   <Button 
                     type="button" 
                     variant="outline"
-                    onClick={() => document.querySelector('[data-value="center"]')?.click()}
+                    onClick={() => goToTab('center')}
                   >
                     Previous Step
                   </Button>
