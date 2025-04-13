@@ -76,6 +76,14 @@ const ExamForm: React.FC<ExamFormProps> = ({ onExamScheduled, onCancel }) => {
     return 100;
   };
 
+  // Function to safely trigger click on tab
+  const goToTab = (tabValue: string) => {
+    const tabElement = document.querySelector(`[data-value="${tabValue}"]`) as HTMLElement | null;
+    if (tabElement) {
+      tabElement.click();
+    }
+  };
+
   return (
     <Card className="shadow-lg border-t-4 border-t-purple-600">
       <CardHeader className="bg-gray-50 rounded-t-lg">
@@ -136,8 +144,8 @@ const ExamForm: React.FC<ExamFormProps> = ({ onExamScheduled, onCancel }) => {
                 <div className="flex justify-end mt-4">
                   <Button 
                     type="button" 
-                    className="bg-purple-600 hover:bg-purple-700 flex items-center"
-                    onClick={goToNextTab}
+                    className="bg-purple-600 hover:bg-purple-700"
+                    onClick={() => document.querySelector('[data-value="center"]')?.click()}
                   >
                     Next Step <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -152,15 +160,14 @@ const ExamForm: React.FC<ExamFormProps> = ({ onExamScheduled, onCancel }) => {
                   <Button 
                     type="button" 
                     variant="outline"
-                    className="flex items-center"
-                    onClick={goToPrevTab}
+                    onClick={() => document.querySelector('[data-value="basic"]')?.click()}
                   >
                     <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                   </Button>
                   <Button 
                     type="button" 
-                    className="bg-purple-600 hover:bg-purple-700 flex items-center"
-                    onClick={goToNextTab}
+                    className="bg-purple-600 hover:bg-purple-700"
+                    onClick={() => document.querySelector('[data-value="assessment"]')?.click()}
                   >
                     Next Step <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
@@ -175,8 +182,7 @@ const ExamForm: React.FC<ExamFormProps> = ({ onExamScheduled, onCancel }) => {
                   <Button 
                     type="button" 
                     variant="outline"
-                    className="flex items-center"
-                    onClick={goToPrevTab}
+                    onClick={() => document.querySelector('[data-value="center"]')?.click()}
                   >
                     <ChevronLeft className="mr-2 h-4 w-4" /> Previous
                   </Button>
